@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from shared.state import Coord, StatName, StatModifier, ActionDefinition, ActionSlot, EquipmentDefinition,EquipmentSlot
+from shared.state import Coord, StatName, StatModifier, AbilityDefinition, ActionSlot, EquipmentDefinition,EquipmentSlot
 
 @pytest.mark.parametrize(
     "x, y, legal",
@@ -99,7 +99,7 @@ def test_modifier_validation(stat, modifier, legal):
             1,
             [
                 {"effect_type": "damage", "amount": 1},
-                {"effect_type": "pull", "distance": 2},
+                {"effect_type": "pull", "destination": {"x": 3, "y": 4}},
             ],
             True,
         ),
@@ -141,7 +141,7 @@ def test_modifier_validation(stat, modifier, legal):
         (
             "04",
             "Dash",
-            "free action",
+            "freebie action",
             0,
             0,
             [{"effect_type": "move", "max_distance": 3}],
@@ -157,7 +157,7 @@ def test_modifier_validation(stat, modifier, legal):
             1,
             [
                 {"effect_type": "damage", "amount": 1},
-                {"effect_type": "PullEffect", "distance": 2},
+                {"effect_type": "PullEffect", "destination": {"x": 3, "y": 4}},
             ],
             False,
         ),
@@ -173,7 +173,7 @@ def test_action_definition_validation(
     legal,
 ):
     if legal:
-        act = ActionDefinition(
+        act = AbilityDefinition(
             action_id=action_id,
             display_name=display_name,
             action_slot=action_slot,
@@ -190,7 +190,7 @@ def test_action_definition_validation(
 
     else:
         with pytest.raises(ValidationError):
-            ActionDefinition(
+            AbilityDefinition(
                 action_id=action_id,
                 display_name=display_name,
                 action_slot=action_slot,

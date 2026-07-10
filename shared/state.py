@@ -1,29 +1,31 @@
 from enum import Enum
 from typing import Literal, Annotated
 from pydantic import BaseModel, Field
+from .const import *
 
 class Coord(BaseModel):
     x:int = Field(ge=0)
     y:int = Field(ge=0)
 
 class EquipmentSlot(str, Enum):
-    ARMOR = "armor"
-    ACCESSORY = "accessory"
-    MAINHAND = "main-hand"
-    OFFHAND = "off-hand"
-    TWOHAND = "two-handed"
+    ARMOR = EQUIPMENTARMORSTRING
+    ACCESSORY = EQUIPMENTACCESSORYSTRING
+    MAINHAND = EQUIPMENTMAINHANDSTRING
+    OFFHAND = EQUIPMENTOFFHANDSTRING
+    TWOHAND = EQUIPMENTTWOHANDSTRING
 
 class StatName(str, Enum):
-    MAXHEALTH = "maximum health"
-    ARMOR = "armor"
-    EVASION = "evasion"
-    ACCURACY = "accuracy"
-    MOVEMENT = "movement"
+    MAXHEALTH = STATMAXHEALTHSTRING
+    ARMOR = STATARMORSTRING
+    EVASION = STATEVASIONSTRING
+    ACCURACY = STATACCURACYSTRING
+    MOVEMENT = STATMOVEMENTSTRING
 
 class ActionSlot(str, Enum):
-    BONUS = "bonus action"
-    MAIN = "main action"
-    MOVE = "movement action"
+    BONUS = ACTIONBONUSSTRING
+    MAIN = ACTIONMAINSTRING
+    MOVE = ACTIONMOVEMENTSTRING
+    FREE = ACTIONFREESTRING
 
 class StatModifier(BaseModel):
     stat: StatName
@@ -31,7 +33,6 @@ class StatModifier(BaseModel):
 
 class MoveEffect(BaseModel):
     effect_type: Literal["move"]
-    max_distance: int
 
 class HealEffect(BaseModel):
     effect_type: Literal["heal"]
@@ -39,13 +40,12 @@ class HealEffect(BaseModel):
 
 class DamageEffect(BaseModel):
     effect_type: Literal["damage"]
-    amount: int
     quality_bonus: int = 0
-    damage_roll: str = '1d6'
+    damage_roll: str = DEFAULTDAMAGE
 
 class PullEffect(BaseModel):
     effect_type: Literal["pull"]
-    distance: int
+    destination: Coord
 
 class ApplyStatusEffect(BaseModel):
     effect_type: Literal["apply_status"]
@@ -55,13 +55,14 @@ class ApplyStatusEffect(BaseModel):
 EffectDefinition = Annotated[MoveEffect | HealEffect | DamageEffect | PullEffect | ApplyStatusEffect,
                              Field(discriminator = "effect_type")]
 
-class ActionDefinition(BaseModel):
+class AbilityDefinition(BaseModel):
     action_id:str
     display_name:str
     action_slot: ActionSlot
     range_min: int = 1
     range_max: int = 1
     effects: list[EffectDefinition] = Field(default_factory=list)
+    tohit_bonus: int | None = None #Some actions may have an attack roll associated with them. If extant, it will be an int containing the bonus to hit. If not, it will be None.
 
 class EquipmentDefinition(BaseModel):
     equipment_id:str
@@ -69,7 +70,7 @@ class EquipmentDefinition(BaseModel):
     slot: EquipmentSlot
     point_cost: int = 0
     stat_modifiers: list[StatModifier] = Field(default_factory=list)
-    granted_actions: list[ActionDefinition] = Field(default_factory=list)
+    granted_action_ids: list[str] = Field(default_factory=list)
 
 PlayerSlot = Literal["player1", "player2"]
 
@@ -82,10 +83,10 @@ class UnitState(BaseModel):
     equipment: dict[EquipmentSlot, str] = Field(default_factory=dict)
 
 class GamePhase(str, Enum):
-    DEPLOYMENT = "deployment"
-    ACTIVE_UNIT = "active_unit"
-    SELECTING_UNIT = "selecting_unit"
-    GAME_OVER = "game_over"
+    DEPLOYMENT = PHASEDEPLOYMENTSTRING
+    ACTIVE_UNIT = PHASEACTIVEUNITSTRING
+    SELECTING_UNIT = PHASESELECTINGUNITSTRING
+    GAME_OVER = PHASEGAMEOVERSTRING
 
 class GameState(BaseModel):
     match_id:str
@@ -101,6 +102,5 @@ class GameState(BaseModel):
     ActionSlot.MAIN,
     ActionSlot.MOVE,
     ActionSlot.BONUS,])
-    available_actions: list[ActionSlot] | None = None
     winner: PlayerSlot | None=None
 

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal, Annotated
 from pydantic import BaseModel, Field
-from state import Coord, ActionSlot, PlayerSlot
+from shared.state import Coord, ActionSlot, PlayerSlot
 """
 Let's talk actions that are possible.
 When submitting an action, that will look like:
@@ -18,7 +18,9 @@ class ActionHandler(str, Enum):
     SelectUnit = "selectUnit"
 
 class SubmittedAction(BaseModel):
+    player_id:str
     action_id: str
+    unit_id: str
     handler: ActionHandler
     target: Coord | str
 
@@ -79,9 +81,31 @@ class GameEndedEvent(BaseModel):
     event_type: Literal["game_ended"]
     winner: PlayerSlot | None
 
+class AttackMissedEvent(BaseModel):
+    event_type: Literal["attack_missed"]
+    unit_id: str
+    action_id: str
+    target_id: str
+    roll: int
+    bonus: int
+
+class AttackHitEvent(BaseModel):
+    event_type: Literal["attack_hit"]
+    unit_id: str
+    action_id: str
+    target_id: str
+    roll: int
+    bonus: int
+
+class UnitKilledEvent(BaseModel):
+    event_type: Literal["unit_killed"]
+    unit_id: str
+
 GameEvent = Annotated[
     ActionRejectedEvent
     | ActionAcceptedEvent
+    | AttackMissedEvent
+    | AttackHitEvent
     | UnitMovedEvent
     | UnitDamagedEvent
     | UnitHealedEvent
@@ -89,6 +113,7 @@ GameEvent = Annotated[
     | UnitActivationUpdatedEvent
     | UnitActivationEndedEvent
     | UnitSelectionStartedEvent
+    | UnitKilledEvent
     | RoundStartedEvent
     | GameEndedEvent,
     Field(discriminator="event_type"),
