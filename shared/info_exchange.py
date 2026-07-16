@@ -16,6 +16,7 @@ class ActionHandler(str, Enum):
     Ability = "ability"
     DeployUnit = "deploy"
     SelectUnit = "selectUnit"
+    EndTurn = "endTurn"
 
 class SubmittedAction(BaseModel):
     player_id:str

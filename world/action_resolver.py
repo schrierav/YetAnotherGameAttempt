@@ -1,7 +1,7 @@
 import copy
 from random import randint
 from shared.state import ApplyStatusEffect, Coord, DamageEffect, GameState, ActionSlot, GamePhase, AbilityDefinition, HealEffect, PullEffect, EquipmentDefinition
-from shared.info_exchange import SubmittedAction, ActionHandler
+from shared.info_exchange import SubmittedAction, ActionHandler, ActionRejectedEvent
 from shared.const import HITPOINTLIMIT, DEFAULTDAMAGE, TOHIT
 
 def rollDice(dice_str: str) -> int:
@@ -150,8 +150,9 @@ class Resolver():
 
 
     def resolve_action(self, state:GameState, action: SubmittedAction)->tuple[GameState, list]:
-        if not self.verify_action(state, action):
-            return state, []
+        isLegal, reason = self.verify_action(state, action)
+        if not isLegal:
+            return state, [ActionRejectedEvent(event_type="action_rejected", reason=reason)]
         newState = copy.deepcopy(state)
         ability = self.abilityDefinitions[action.action_id]
         events = []
