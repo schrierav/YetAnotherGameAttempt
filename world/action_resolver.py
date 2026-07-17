@@ -1,7 +1,7 @@
 import copy
 from random import randint
 from shared.state import ApplyStatusEffect, Coord, DamageEffect, GameState, ActionSlot, GamePhase, AbilityDefinition, HealEffect, PullEffect, EquipmentDefinition
-from shared.info_exchange import SubmittedAction, ActionHandler, ActionRejectedEvent
+from shared.info_exchange import SubmittedAction, ActionHandler, ActionRejectedEvent, RoundStartedEvent, TurnStartedEvent
 from shared.const import HITPOINTLIMIT, DEFAULTDAMAGE, TOHIT
 
 def rollDice(dice_str: str) -> int:
@@ -59,6 +59,9 @@ class Resolver():
         if not((state.active_player == "player1" and state.player1_id == action.player_id) 
                or (state.active_player == "player2" and state.player2_id == action.player_id)):
             return False, "Player is not the active player"
+        if state.active_unit:
+            if state.active_unit != action.unit_id:
+                return False, "Wrong unit trying to activate"
         if ((state.phase == GamePhase.DEPLOYMENT and action.handler != ActionHandler.DeployUnit) or 
             (state.phase != GamePhase.DEPLOYMENT and action.handler == ActionHandler.DeployUnit)):
             return False, "Invalid action for current game phase"
@@ -147,14 +150,62 @@ class Resolver():
             }
         events.append(event)
         return True
-
+    
+    def advance_turn(self, state:GameState)->list:
+        """Checks if the gamestate is ready to advance, meaning that a character has taken all their actions.
+        Returns a list of triggered events, and updates the gamestate to reflect the new state of the world.
+        As a note to self, the advances represented are:
+        Switching character when all actions have been spent AND switching to a fresh turn-cycle when all characters are activated
+        """
+        if len(state.available_action_slots) > 0:
+            return [] #Actions remain to be taken
+        state.phase = GamePhase.SELECTING_UNIT
+        state.active_unit = None
+        state.activated_unit_ids.append(state.active_unit)
+        state.available_action_slots = [ActionSlot.MAIN,ActionSlot.MOVE,ActionSlot.BONUS,]
+        p1_count, p2_count = 0, 0
+        units_remain = False
+        for unit in state.units.values():
+            if unit.wounds < HITPOINTLIMIT:
+                if unit.unit_id not in state.activated_unit_ids:
+                    units_remain = True
+                if unit.owner == "player1":
+                    p1_count +=1
+                else:
+                    p2_count +=1
+        if not units_remain:
+            #All units have activated, so we move to the next round
+            state.round_number += 1
+            state.activated_unit_ids = []
+            if p1_count > p2_count:
+                state.active_player = "player1"
+            elif p2_count > p1_count:
+                state.active_player = "player2"
+            elif state.active_player == "player1":
+                state.active_player = "player2"
+            else:
+                state.active_player = "player1"
+            return [RoundStartedEvent(round_number=state.round_number, active_player=state.active_player)]
+        #some units remain unactivated, so we'll toggle the player
+        if state.active_player == "player1":
+            if p2_count > 0:
+                state.active_player = "player2"
+        else:
+            if p1_count > 0:
+                state.active_player = "player1"
+        return [TurnStartedEvent(event_type="turn_ended", active_player=state.active_player)]
+        
 
     def resolve_action(self, state:GameState, action: SubmittedAction)->tuple[GameState, list]:
         isLegal, reason = self.verify_action(state, action)
         if not isLegal:
             return state, [ActionRejectedEvent(event_type="action_rejected", reason=reason)]
         newState = copy.deepcopy(state)
+        if state.phase == GamePhase.SELECTING_UNIT:
+            newState.active_unit = action.unit_id
+            newState.phase = GamePhase.ACTIVE_UNIT
         ability = self.abilityDefinitions[action.action_id]
+        newState.available_action_slots.remove(ability.action_slot)
         events = []
         if ability.tohit_bonus is not None: #Make an attack roll!
             if not self.roll_to_hit(newState, action, ability, events):
@@ -171,4 +222,5 @@ class Resolver():
                     self.handlePullEffect(newState, action, effect, events)
                 case "apply_status":
                     self.handleApplyStatusEffect(newState, action, effect, events)
+        events += self.advance_turn(newState)
         return newState, events

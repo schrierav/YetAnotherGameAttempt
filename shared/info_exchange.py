@@ -82,6 +82,10 @@ class GameEndedEvent(BaseModel):
     event_type: Literal["game_ended"]
     winner: PlayerSlot | None
 
+class TurnStartedEvent(BaseModel):
+    event_type: Literal["turn_ended"]
+    active_player: PlayerSlot
+
 class AttackMissedEvent(BaseModel):
     event_type: Literal["attack_missed"]
     unit_id: str

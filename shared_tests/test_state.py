@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from shared.state import Coord, StatName, StatModifier, AbilityDefinition, ActionSlot, EquipmentDefinition,EquipmentSlot
+from shared.state import Coord, StatName, StatModifier, AbilityDefinition, ActionSlot, EquipmentDefinition,EquipmentSlot, UnitState
 
 @pytest.mark.parametrize(
     "x, y, legal",
@@ -249,12 +249,6 @@ def test_equipment_definition_basic_validation(
                 slot=slot,
                 point_cost=point_cost,
             )
-
-import pytest
-from pydantic import ValidationError
-
-from shared.state import UnitState, PlayerSlot, Coord, EquipmentSlot
-
 
 @pytest.mark.parametrize(
     "unit_id, owner, position, wounds, statuses, equipment, legal",

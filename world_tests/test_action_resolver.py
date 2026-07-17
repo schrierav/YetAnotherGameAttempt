@@ -322,3 +322,11 @@ def testComputeStat(sampleResolver, sampleGamestate):
     # Equip the unit with an accessory that modifies evasion.
     unit.equipment[EquipmentSlot.ACCESSORY] = "amulet_of_dodging_everything"
     assert sampleResolver.compute_stat(sampleGamestate, unit.unit_id, "evasion") == 100
+
+def test_turn_advancer(sampleResolver, sampleGamestate):
+    ##Should not change anything, since there are still actions to be taken
+    assert sampleResolver.advance_turn(sampleGamestate) == []
+    sampleGamestate.available_action_slots = []
+    assert len(sampleResolver.advance_turn(sampleGamestate)) == 1
+    assert sampleGamestate.active_player == "player1"
+    assert len(sampleGamestate.available_action_slots) == 3

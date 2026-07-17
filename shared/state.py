@@ -95,6 +95,7 @@ class GameState(BaseModel):
     player1_id:str
     player2_id:str
     active_player:PlayerSlot
+    active_unit: str | None = None
     phase: GamePhase
     units: dict[str, UnitState]
     round_number:int = 0

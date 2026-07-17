@@ -72,6 +72,7 @@ class TextDisplay:
             case AttackMissedEvent():
                 print(f"{event["unit_id"]} goes to strike {event["target_id"]}, but rolls a {event.roll}!")
                 print(f"{event.roll}+{event.bonus} isn't enough for the target EV!")
+                
             case AttackHitEvent():
                 print(f"{event.unit_id} goes to strike {event.target_id}, and rolls a {event.roll}!")
                 print(f"{event.roll}+{event.bonus} is enough for the target EV!")
