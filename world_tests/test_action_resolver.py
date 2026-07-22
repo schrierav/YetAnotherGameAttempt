@@ -327,6 +327,9 @@ def test_turn_advancer(sampleResolver, sampleGamestate):
     ##Should not change anything, since there are still actions to be taken
     assert sampleResolver.advance_turn(sampleGamestate) == []
     sampleGamestate.available_action_slots = []
+    sampleGamestate.active_unit = "genericum"
     assert len(sampleResolver.advance_turn(sampleGamestate)) == 1
     assert sampleGamestate.active_player == "player1"
+    assert sampleGamestate.active_unit == None
     assert len(sampleGamestate.available_action_slots) == 3
+    assert sampleGamestate.round_number == 2

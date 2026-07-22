@@ -53,7 +53,10 @@ class ApplyStatusEffect(BaseModel):
     status_id: str
     duration: int
 
-EffectDefinition = Annotated[MoveEffect | HealEffect | DamageEffect | PullEffect | ApplyStatusEffect,
+class EndTurnEffect(BaseModel):
+    effect_type: Literal["end_turn"]
+
+EffectDefinition = Annotated[MoveEffect | HealEffect | DamageEffect | PullEffect | ApplyStatusEffect | EndTurnEffect,
                              Field(discriminator = "effect_type")]
 
 class AbilityDefinition(BaseModel):

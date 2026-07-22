@@ -97,6 +97,19 @@ def sampleAbility():
                 "duration": 2
                 },
             ]
+        },
+        "end_turn":{
+            "action_id":"end_turn",
+            "display_name":"End Turn",
+            "action_slot": ActionSlot.FREE,
+            "range_min": 1,
+            "range_max":900,
+            "effects": [
+                {
+                "effect_type": "end_turn",
+                },
+            ]
+
         }
     }
 
@@ -128,8 +141,8 @@ def sampleGamestate():
     return GameState(
         match_id="sampleMatch",
         map_id="sampleMap",
-        player1_id="p1",
-        player2_id="p2",
+        player1_id="player1",
+        player2_id="player2",
         active_player="player2",
         phase=GamePhase.SELECTING_UNIT,
         units={"A":unit1, "B":unit2},

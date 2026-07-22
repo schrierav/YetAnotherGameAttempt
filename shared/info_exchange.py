@@ -120,6 +120,7 @@ GameEvent = Annotated[
     | UnitSelectionStartedEvent
     | UnitKilledEvent
     | RoundStartedEvent
+    | TurnStartedEvent
     | GameEndedEvent,
     Field(discriminator="event_type"),
 ]

@@ -160,8 +160,8 @@ class Resolver():
         if len(state.available_action_slots) > 0:
             return [] #Actions remain to be taken
         state.phase = GamePhase.SELECTING_UNIT
-        state.active_unit = None
         state.activated_unit_ids.append(state.active_unit)
+        state.active_unit = None
         state.available_action_slots = [ActionSlot.MAIN,ActionSlot.MOVE,ActionSlot.BONUS,]
         p1_count, p2_count = 0, 0
         units_remain = False
@@ -185,7 +185,7 @@ class Resolver():
                 state.active_player = "player2"
             else:
                 state.active_player = "player1"
-            return [RoundStartedEvent(round_number=state.round_number, active_player=state.active_player)]
+            return [RoundStartedEvent(event_type="round_started", round_number=state.round_number, active_player=state.active_player)]
         #some units remain unactivated, so we'll toggle the player
         if state.active_player == "player1":
             if p2_count > 0:
@@ -205,7 +205,8 @@ class Resolver():
             newState.active_unit = action.unit_id
             newState.phase = GamePhase.ACTIVE_UNIT
         ability = self.abilityDefinitions[action.action_id]
-        newState.available_action_slots.remove(ability.action_slot)
+        if action.action_id != "end_turn":
+            newState.available_action_slots.remove(ability.action_slot)
         events = []
         if ability.tohit_bonus is not None: #Make an attack roll!
             if not self.roll_to_hit(newState, action, ability, events):
@@ -222,5 +223,7 @@ class Resolver():
                     self.handlePullEffect(newState, action, effect, events)
                 case "apply_status":
                     self.handleApplyStatusEffect(newState, action, effect, events)
+                case "end_turn":
+                    newState.available_action_slots = []
         events += self.advance_turn(newState)
         return newState, events

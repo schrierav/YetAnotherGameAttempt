@@ -12,7 +12,8 @@ if __name__ == "__main__":
     loops = 0
     while running:
         display.drawMap(gamestate)
-        player_input = display.getUserInput()
+        player_input = display.getUserInput(gamestate)
+        print(gamestate.activated_unit_ids)
         isLegal, response = resolver.verify_action(gamestate, player_input)
         gamestate, events = resolver.resolve_action(gamestate, player_input)
         display.parseEvents(events)
