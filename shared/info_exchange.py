@@ -1,4 +1,4 @@
-from enum import Enum
+from enums import ActionHandler
 from typing import Literal, Annotated
 from pydantic import BaseModel, Field
 from shared.state import Coord, ActionSlot, PlayerSlot
@@ -10,13 +10,6 @@ Moving your active character
 Targeting another character with an ability
 Ending a turn early
 """
-
-class ActionHandler(str, Enum):
-    Effect = "effects"
-    Ability = "ability"
-    DeployUnit = "deploy"
-    SelectUnit = "selectUnit"
-    EndTurn = "endTurn"
 
 class SubmittedAction(BaseModel):
     player_id:str

@@ -1,32 +1,12 @@
-from enum import Enum
 from typing import Literal, Annotated
 from pydantic import BaseModel, Field
+from enums import ActionSlot, EquipmentSlot, StatName, GamePhase
+from literals import PlayerSlot
 from .const import *
 
 class Coord(BaseModel):
     x:int = Field(ge=0)
     y:int = Field(ge=0)
-
-class EquipmentSlot(str, Enum):
-    ARMOR = EQUIPMENTARMORSTRING
-    ACCESSORY = EQUIPMENTACCESSORYSTRING
-    MAINHAND = EQUIPMENTMAINHANDSTRING
-    OFFHAND = EQUIPMENTOFFHANDSTRING
-    TWOHAND = EQUIPMENTTWOHANDSTRING
-    BOOTS = EQUIPMENTBOOTSSTRING
-
-class StatName(str, Enum):
-    MAXHEALTH = STATMAXHEALTHSTRING
-    ARMOR = STATARMORSTRING
-    EVASION = STATEVASIONSTRING
-    ACCURACY = STATACCURACYSTRING
-    MOVEMENT = STATMOVEMENTSTRING
-
-class ActionSlot(str, Enum):
-    BONUS = ACTIONBONUSSTRING
-    MAIN = ACTIONMAINSTRING
-    MOVE = ACTIONMOVEMENTSTRING
-    FREE = ACTIONFREESTRING
 
 class StatModifier(BaseModel):
     stat: StatName
@@ -76,8 +56,6 @@ class EquipmentDefinition(BaseModel):
     stat_modifiers: list[StatModifier] = Field(default_factory=list)
     granted_action_ids: list[str] = Field(default_factory=list)
 
-PlayerSlot = Literal["player1", "player2"]
-
 class UnitState(BaseModel):
     unit_id:str
     owner:PlayerSlot
@@ -85,12 +63,6 @@ class UnitState(BaseModel):
     wounds:int
     statuses: list[str] = Field(default_factory=list)
     equipment: dict[EquipmentSlot, str] = Field(default_factory=dict)
-
-class GamePhase(str, Enum):
-    DEPLOYMENT = PHASEDEPLOYMENTSTRING
-    ACTIVE_UNIT = PHASEACTIVEUNITSTRING
-    SELECTING_UNIT = PHASESELECTINGUNITSTRING
-    GAME_OVER = PHASEGAMEOVERSTRING
 
 class GameState(BaseModel):
     match_id:str
